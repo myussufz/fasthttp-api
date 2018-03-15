@@ -11,9 +11,9 @@ const (
 
 // Content Type
 const (
-	ContentTypeJSON = "application/json"
-	ContentTypeXML  = "application/xml"
-	// ContentTypeXWWWFormURLEncoded = "application/x-www-form-urlencoded"
+	ContentTypeJSON               = "application/json"
+	ContentTypeXML                = "application/xml"
+	ContentTypeXWWWFormURLEncoded = "application/x-www-form-urlencoded"
 )
 
 var (
@@ -26,9 +26,9 @@ var (
 	}
 
 	contentTypeMap = map[string]bool{
-		ContentTypeJSON: true,
-		ContentTypeXML:  true,
-		// ContentTypeXWWWFormURLEncoded: true,
+		ContentTypeJSON:               true,
+		ContentTypeXML:                true,
+		ContentTypeXWWWFormURLEncoded: true,
 	}
 )
 

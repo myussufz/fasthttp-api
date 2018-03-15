@@ -32,6 +32,8 @@ func (c *Client) setOptions(options *Options) {
 		c.request.Header.SetMethod(defaultMethod)
 	}
 
-	c.setBody(options.Body)
-
+	// set the body if not equal to nil
+	if options.Body != nil {
+		c.setBody(options.Body)
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"log"
 	"reflect"
 
 	"github.com/valyala/fasthttp"
@@ -84,7 +83,6 @@ func (c *Client) ToXML(i interface{}) error {
 	}
 
 	if err := xml.Unmarshal(c.response.Body(), i); err != nil {
-		log.Println("xml: ", err)
 		return errUnableUnmarshalXML
 	}
 
