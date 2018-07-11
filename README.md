@@ -8,7 +8,7 @@ This repo still under development. We accept any pull request. ^\_^
 
 ```bash
   // dependency
-  $ go get github.com/magicwebes/fasthttp-api
+  $ go get github.com/myussufz/fasthttp-api
   $ go get github.com/valyala/fasthttp
 ```
 
