@@ -53,9 +53,9 @@ This repo still under development. We accept any pull request. ^\_^
     }
 
     if err = api.Fetch("http://google.com", &api.Options{
-            Method = api.MethodPOST
-            ContentType = api.ContentTypeXML
-            Body = request
+            Method: api.MethodPOST,
+            ContentType: api.ContentTypeXML,
+            Body: request,
         }).
         ToXML(&response); err != nil {
         log.Println("error: ", err)
@@ -72,9 +72,9 @@ This repo still under development. We accept any pull request. ^\_^
     request.Name = "test"
 
     data, err = api.Fetch("http://google.com", &api.Options{
-        Method = api.MethodPOST
-        ContentType = api.ContentTypeJSON
-        Body = request
+        Method: api.MethodPOST,
+        ContentType: api.ContentTypeJSON,
+        Body: request,
     }).
     ToString();
     if err != nil {
