@@ -30,9 +30,9 @@ This repo still under development. We accept any pull request. ^\_^
     }
 
     if err = api.Fetch("http://google.com", &api.Options{
-            Method = api.MethodPOST
-            ContentType = api.ContentTypeJSON
-            Body = request
+            Method: api.MethodPOST,
+            ContentType: api.ContentTypeJSON,
+            Body: request,
         }).
         ToJSON(&response); err != nil {
         log.Println("error: ", err)
