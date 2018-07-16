@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/ajg/form"
@@ -13,7 +14,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var methods = make(map[string]bool)
+var methods = make(map[string]bool, 9)
 
 func init() {
 	for _, m := range [...]string{
@@ -85,11 +86,13 @@ func Fetch(url string, option ...Option) *Client {
 		opt = option[0]
 	}
 
+	opt.Method = strings.TrimSpace(opt.Method)
+	opt.ContentType = strings.TrimSpace(opt.ContentType)
 	if opt.Method != "" {
-		c.method = opt.Method
+		c.method = strings.ToUpper(opt.Method)
 	}
 	if opt.ContentType != "" {
-		c.contentType = opt.ContentType
+		c.contentType = strings.ToLower(opt.ContentType)
 	}
 
 	if _, isOk := methods[c.method]; !isOk {
@@ -99,6 +102,8 @@ func Fetch(url string, option ...Option) *Client {
 	c.headers.SetMethod(c.method)
 	c.headers.SetContentType(c.contentType)
 	for key, value := range opt.Headers {
+		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
 		c.headers.Add(key, value)
 	}
 	c.headers.CopyTo(&request.Header)
