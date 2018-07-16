@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"time"
@@ -11,6 +12,24 @@ import (
 	json "github.com/pquerna/ffjson/ffjson"
 	"github.com/valyala/fasthttp"
 )
+
+var methods = make(map[string]bool)
+
+func init() {
+	for _, m := range [...]string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPatch,
+		http.MethodPut,
+		http.MethodConnect,
+		http.MethodHead,
+		http.MethodTrace,
+		http.MethodDelete,
+		http.MethodOptions,
+	} {
+		methods[m] = true
+	}
+}
 
 // Option :
 type Option struct {
@@ -43,6 +62,8 @@ func Fetch(url string, option ...Option) *Client {
 	startAt := time.Now()
 	c := new(Client)
 	c.client = new(fasthttp.Client)
+	c.method = http.MethodGet
+	c.contentType = ContentTypeJSON
 	c.headers = new(fasthttp.RequestHeader)
 	request := fasthttp.AcquireRequest()
 	response := fasthttp.AcquireResponse()
@@ -71,6 +92,10 @@ func Fetch(url string, option ...Option) *Client {
 		c.contentType = opt.ContentType
 	}
 
+	if _, isOk := methods[c.method]; !isOk {
+		c.err = fmt.Errorf("api: invalid request method %q", c.method)
+		return c
+	}
 	c.headers.SetMethod(c.method)
 	c.headers.SetContentType(c.contentType)
 	for key, value := range opt.Headers {
