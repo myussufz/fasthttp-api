@@ -55,6 +55,11 @@ func Fetch(url string, options *Options) *Client {
 		return c
 	}
 
+	defer func() {
+		fasthttp.ReleaseRequest(c.request)
+		fasthttp.ReleaseResponse(c.response)
+	}()
+
 	return c
 }
 
@@ -69,14 +74,14 @@ func (c *Client) ToString() (string, error) {
 
 // ToXML :
 func (c *Client) ToXML(i interface{}) error {
+	if c.err != nil {
+		return c.err
+	}
+
 	var (
 		errUnableUnmarshalXML  = errors.New("api: unable to unmarshal the xml")
 		errStructShouldPointer = errors.New("api: struct should be pointer")
 	)
-
-	if c.err != nil {
-		return c.err
-	}
 
 	if reflect.ValueOf(i).Kind() != reflect.Ptr {
 		return errStructShouldPointer
@@ -91,6 +96,10 @@ func (c *Client) ToXML(i interface{}) error {
 
 // ToJSON :
 func (c *Client) ToJSON(i interface{}) error {
+	if c.err != nil {
+		return c.err
+	}
+
 	var (
 		errUnableUnmarshalJSON = errors.New("api: unable to unmarshal the json")
 		errStructShouldPointer = errors.New("api: struct should be pointer")
