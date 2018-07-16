@@ -1,78 +1,121 @@
 package api
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"net/http"
 	"reflect"
+	"time"
 
+	"github.com/ajg/form"
+	json "github.com/pquerna/ffjson/ffjson"
 	"github.com/valyala/fasthttp"
 )
 
-// Options :
-type Options struct {
+// Option :
+type Option struct {
 	ContentType string
 	Method      string
 	Headers     map[string]string
 	Body        interface{}
-	// Credentials string
 }
+
+var (
+	defaultOption = Option{
+		ContentType: ContentTypeJSON,
+		Method:      http.MethodGet,
+	}
+)
 
 // Client :
 type Client struct {
-	client   *fasthttp.Client
-	request  *fasthttp.Request
-	response *fasthttp.Response
-	err      error
+	method      string
+	headers     *fasthttp.RequestHeader
+	client      *fasthttp.Client
+	contentType string
+	timeTaken   time.Duration
+	body        []byte
+	err         error
 }
 
 // Fetch :
-func Fetch(url string, options *Options) *Client {
+func Fetch(url string, option ...Option) *Client {
+	startAt := time.Now()
+	c := new(Client)
+	c.client = new(fasthttp.Client)
+	c.headers = new(fasthttp.RequestHeader)
 	request := fasthttp.AcquireRequest()
 	response := fasthttp.AcquireResponse()
 
-	c := new(Client)
-	c.request = request
-	c.response = response
+	defer func() {
+		fasthttp.ReleaseRequest(request)
+		fasthttp.ReleaseResponse(response)
+		c.timeTaken = time.Since(startAt)
+	}()
 
 	if err := validateURL(url); err != nil {
-		return c
-	}
-
-	c.request.SetRequestURI(url)
-
-	if options != nil {
-		c.setOptions(options)
-	} else {
-		c.request.Header.SetMethod(defaultMethod)
-		c.request.Header.SetContentType(defaultContentType)
-	}
-
-	c.client = new(fasthttp.Client)
-
-	if err := c.client.Do(c.request, c.response); err != nil {
 		c.err = err
 		return c
 	}
 
+	c.headers.SetRequestURI(url)
+	opt := defaultOption
+	if len(option) > 0 {
+		opt = option[0]
+	}
+
+	if opt.Method != "" {
+		c.method = opt.Method
+	}
+	if opt.ContentType != "" {
+		c.contentType = opt.ContentType
+	}
+
+	c.headers.SetMethod(c.method)
+	c.headers.SetContentType(c.contentType)
+	for key, value := range opt.Headers {
+		c.headers.Add(key, value)
+	}
+	c.headers.CopyTo(&request.Header)
+	if opt.Body != nil {
+		bb, err := c.toByte(opt.Body)
+		if err != nil {
+			c.err = err
+			return c
+		}
+		request.SetBody(bb)
+	}
+	if err := c.client.Do(request, response); err != nil {
+		c.err = err
+		return c
+	}
+
+	c.body = response.Body()
 	return c
+}
+
+func (c *Client) toByte(i interface{}) ([]byte, error) {
+	switch string(c.contentType) {
+	case ContentTypeXML:
+		return xml.Marshal(i)
+	case ContentTypeXWWWFormURLEncoded:
+		str, err := form.EncodeToString(i)
+		return []byte(str), err
+	default:
+		return json.Marshal(i)
+	}
 }
 
 // ToString :
 func (c *Client) ToString() (string, error) {
-	defer c.releaseContext()
-
 	if c.err != nil {
 		return "", c.err
 	}
-
-	return string(c.response.Body()), nil
+	return string(c.body), nil
 }
 
 // ToXML :
 func (c *Client) ToXML(i interface{}) error {
-	defer c.releaseContext()
-
 	if c.err != nil {
 		return c.err
 	}
@@ -86,7 +129,7 @@ func (c *Client) ToXML(i interface{}) error {
 		return errStructShouldPointer
 	}
 
-	if err := xml.Unmarshal(c.response.Body(), i); err != nil {
+	if err := xml.Unmarshal(c.body, i); err != nil {
 		return errUnableUnmarshalXML
 	}
 
@@ -95,17 +138,10 @@ func (c *Client) ToXML(i interface{}) error {
 
 // ToJSON :
 func (c *Client) ToJSON(i interface{}) error {
-	defer c.releaseContext()
-
-	if c.err != nil {
-		return c.err
-	}
-
 	var (
 		errUnableUnmarshalJSON = errors.New("api: unable to unmarshal the json")
 		errStructShouldPointer = errors.New("api: struct should be pointer")
 	)
-
 	if c.err != nil {
 		return c.err
 	}
@@ -114,14 +150,9 @@ func (c *Client) ToJSON(i interface{}) error {
 		return errStructShouldPointer
 	}
 
-	if err := json.Unmarshal(c.response.Body(), i); err != nil {
+	if err := json.Unmarshal(c.body, i); err != nil {
 		return errUnableUnmarshalJSON
 	}
 
 	return nil
-}
-
-func (c *Client) releaseContext() {
-	fasthttp.ReleaseRequest(c.request)
-	fasthttp.ReleaseResponse(c.response)
 }

@@ -29,12 +29,11 @@ This repo still under development. We accept any pull request. ^\_^
         Name string `json:"name"`
     }
 
-    if err = api.Fetch("http://google.com", &api.Options{
-            Method: api.MethodPOST,
+    if err = api.Fetch("http://google.com", &api.Option{
+            Method: http.MethodPost,
             ContentType: api.ContentTypeJSON,
             Body: request,
-        }).
-        ToJSON(&response); err != nil {
+        }).ToJSON(&response); err != nil {
         log.Println("error: ", err)
     }
 ```
@@ -52,12 +51,11 @@ This repo still under development. We accept any pull request. ^\_^
         Name string `xml:"name"`
     }
 
-    if err = api.Fetch("http://google.com", &api.Options{
-            Method: api.MethodPOST,
+    if err = api.Fetch("http://google.com", &api.Option{
+            Method: http.MethodPost,
             ContentType: api.ContentTypeXML,
             Body: request,
-        }).
-        ToXML(&response); err != nil {
+        }).ToXML(&response); err != nil {
         log.Println("error: ", err)
     }
 ```
@@ -71,12 +69,11 @@ This repo still under development. We accept any pull request. ^\_^
 
     request.Name = "test"
 
-    data, err = api.Fetch("http://google.com", &api.Options{
-        Method: api.MethodPOST,
+    data, err = api.Fetch("http://google.com", &api.Option{
+        Method: http.MethodPost,
         ContentType: api.ContentTypeJSON,
         Body: request,
-    }).
-    ToString();
+    }).ToString();
     if err != nil {
         log.Println("error: ", err)
     }
