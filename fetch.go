@@ -55,16 +55,13 @@ func Fetch(url string, options *Options) *Client {
 		return c
 	}
 
-	defer func() {
-		fasthttp.ReleaseRequest(c.request)
-		fasthttp.ReleaseResponse(c.response)
-	}()
-
 	return c
 }
 
 // ToString :
 func (c *Client) ToString() (string, error) {
+	defer c.releaseContext()
+
 	if c.err != nil {
 		return "", c.err
 	}
@@ -74,6 +71,8 @@ func (c *Client) ToString() (string, error) {
 
 // ToXML :
 func (c *Client) ToXML(i interface{}) error {
+	defer c.releaseContext()
+
 	if c.err != nil {
 		return c.err
 	}
@@ -96,6 +95,8 @@ func (c *Client) ToXML(i interface{}) error {
 
 // ToJSON :
 func (c *Client) ToJSON(i interface{}) error {
+	defer c.releaseContext()
+
 	if c.err != nil {
 		return c.err
 	}
@@ -118,4 +119,9 @@ func (c *Client) ToJSON(i interface{}) error {
 	}
 
 	return nil
+}
+
+func (c *Client) releaseContext() {
+	fasthttp.ReleaseRequest(c.request)
+	fasthttp.ReleaseResponse(c.response)
 }
