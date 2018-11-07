@@ -12,24 +12,21 @@ import (
 	"github.com/ajg/form"
 	json "github.com/pquerna/ffjson/ffjson"
 	"github.com/valyala/fasthttp"
+	"golang.org/x/sync/syncmap"
 )
 
-var methods = make(map[string]bool, 9)
+var methods syncmap.Map
 
 func init() {
-	for _, m := range [...]string{
-		http.MethodGet,
-		http.MethodPost,
-		http.MethodPatch,
-		http.MethodPut,
-		http.MethodConnect,
-		http.MethodHead,
-		http.MethodTrace,
-		http.MethodDelete,
-		http.MethodOptions,
-	} {
-		methods[m] = true
-	}
+	methods.Store(http.MethodGet, true)
+	methods.Store(http.MethodPost, true)
+	methods.Store(http.MethodPatch, true)
+	methods.Store(http.MethodPut, true)
+	methods.Store(http.MethodConnect, true)
+	methods.Store(http.MethodHead, true)
+	methods.Store(http.MethodTrace, true)
+	methods.Store(http.MethodDelete, true)
+	methods.Store(http.MethodOptions, true)
 }
 
 // Option :
@@ -95,7 +92,7 @@ func Fetch(url string, option ...Option) *Client {
 		c.contentType = strings.ToLower(opt.ContentType)
 	}
 
-	if _, isOk := methods[c.method]; !isOk {
+	if _, isOk := methods.Load(c.method); !isOk {
 		c.err = fmt.Errorf("api: invalid request method %q", c.method)
 		return c
 	}
