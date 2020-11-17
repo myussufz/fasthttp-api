@@ -48,7 +48,6 @@ var (
 type Client struct {
 	method      string
 	headers     *fasthttp.RequestHeader
-	client      fasthttp.Client
 	contentType string
 	timeTaken   time.Duration
 	body        []byte
@@ -111,7 +110,7 @@ func Fetch(url string, option ...Option) *Client {
 		}
 		request.SetBody(bb)
 	}
-	if err := c.client.Do(request, response); err != nil {
+	if err := fasthttp.Do(request, response); err != nil {
 		c.err = err
 		return c
 	}
