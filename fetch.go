@@ -48,7 +48,7 @@ var (
 type Client struct {
 	method      string
 	headers     *fasthttp.RequestHeader
-	client      *fasthttp.Client
+	client      fasthttp.Client
 	contentType string
 	timeTaken   time.Duration
 	body        []byte
@@ -59,7 +59,6 @@ type Client struct {
 func Fetch(url string, option ...Option) *Client {
 	startAt := time.Now()
 	c := new(Client)
-	c.client = new(fasthttp.Client)
 	c.method = http.MethodGet
 	c.contentType = ContentTypeJSON
 	c.headers = new(fasthttp.RequestHeader)
